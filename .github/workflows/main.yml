@@ -4,7 +4,7 @@ name: WhatsApp Bot Runner
 # and allow manual trigger
 on:
   schedule:
-    - cron: "0 */5 * * *"  # every 5 hours
+    - cron: "0 */6 * * *"  # every 6 hours
   workflow_dispatch:
 
 jobs:
