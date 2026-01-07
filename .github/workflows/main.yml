@@ -1,9 +1,9 @@
 name: WhatsApp Bot Runner
 
 on:
-  schedule:
-    - cron: "0 */2 * * *"   # every 2 hours
   workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"   # every 6 hours
 
 concurrency:
   group: whatsapp-bot
@@ -14,12 +14,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
-      - run: node start.js
+      - name: Run bot (auto-exit at 5h 50m)
+        run: |
+          echo "Starting bot with clean auto-exit (5h 50m)..."
+          timeout 21000 node start.js
