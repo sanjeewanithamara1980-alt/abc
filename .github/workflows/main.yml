@@ -1,36 +1,31 @@
-name: Safe Auto-Deploy WhatsApp Bot
+name: Auto-Deploy WhatsApp Bot
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+  workflow_dispatch:  # allows manual trigger
   schedule:
-    - cron: '0 */6 * * *'  # every 6 hours
+    - cron: '0 */6 * * *'  # runs every 6 hours
 
 jobs:
   deploy-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 350
+    strategy:
+      matrix:
+        node-version: [20.x]
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
 
-      - name: Install Dependencies
-        run: |
-          npm install --verbose
+    - name: Install dependencies
+      run: npm install
 
-      - name: Start Bot with PM2
-        run: |
-          npx pm2 delete start || true
-          npx pm2 start start.js --name start --watch --max-restarts 5 --restart-delay 5000
-          npx pm2 save
-
-      - name: PM2 Status
-        run: npx pm2 ls
+    - name: Start bot
+      run: npm start
