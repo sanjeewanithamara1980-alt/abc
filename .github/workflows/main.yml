@@ -1,6 +1,5 @@
 name: Safe Auto-Deploy WhatsApp Bot
 
-# Trigger workflow on push to main, manual trigger, and every 6 hours
 on:
   push:
     branches:
@@ -12,35 +11,26 @@ on:
 jobs:
   deploy-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 350  # enough time for large installs
+    timeout-minutes: 350
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
 
-      # Step 3: Install dependencies
       - name: Install Dependencies
-        run: npm ci
+        run: |
+          npm install --verbose
 
-      # Step 4: Start or restart bot safely with PM2
       - name: Start Bot with PM2
         run: |
-          # Kill old process if exists
           npx pm2 delete start || true
-          
-          # Start bot with auto-restart if crashes
           npx pm2 start start.js --name start --watch --max-restarts 5 --restart-delay 5000
-          
-          # Save PM2 list
           npx pm2 save
 
-      # Step 5: Show PM2 status
       - name: PM2 Status
         run: npx pm2 ls
