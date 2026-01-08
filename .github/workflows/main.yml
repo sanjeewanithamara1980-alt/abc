@@ -28,10 +28,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          # ❌ no npm cache (cache needs lock file)
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install dependencies (no lock file)
+        run: npm install --no-audit --no-fund
 
       - name: Start bot
         run: node start.js
