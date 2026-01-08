@@ -1,42 +1,46 @@
-name: WhatsApp Bot Runner
+name: Safe Auto-Deploy WhatsApp Bot
 
-# Trigger workflow manually or on a schedule
+# Trigger workflow on push to main, manual trigger, and every 6 hours
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"  # runs every 5 hours
+    - cron: '0 */6 * * *'  # every 6 hours
 
 jobs:
-  run-bot:
+  deploy-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 350  # enough time for large installs
 
     steps:
-      # Step 1: Checkout your repo
+      # Step 1: Checkout code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Node.js
+      # Step 2: Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: 20
 
       # Step 3: Install dependencies
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
-      # Step 4: Install PM2 globally
-      - name: Install PM2
-        run: npm install -g pm2
-
-      # Step 5: Start the bot with PM2 in watch mode
+      # Step 4: Start or restart bot safely with PM2
       - name: Start Bot with PM2
         run: |
-          # Stop bot if already running
-          pm2 delete start || true
-          # Start bot in watch mode to reload on code changes
-          pm2 start start.js --name start --watch --time
-          # Save PM2 process list
-          pm2 save
-          # Keep the action alive
-          pm2 logs start
+          # Kill old process if exists
+          npx pm2 delete start || true
+          
+          # Start bot with auto-restart if crashes
+          npx pm2 start start.js --name start --watch --max-restarts 5 --restart-delay 5000
+          
+          # Save PM2 list
+          npx pm2 save
+
+      # Step 5: Show PM2 status
+      - name: PM2 Status
+        run: npx pm2 ls
